@@ -8,11 +8,7 @@ def get_message(client_socket):
     if not isinstance(raw_response, bytes):
         raise ValueError
     str_response = raw_response.decode(ENCODING)
-    if not isinstance(str_response, str):
-        raise ValueError
     json_result = json.loads(str_response)
-    if not isinstance(json_result, dict):
-        raise ValueError
     return json_result
 
 

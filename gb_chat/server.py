@@ -1,8 +1,12 @@
 import argparse
 import socket
+import sys
+import os
 
-from gbc_common.variables import *
-from gbc_common.util import get_message, send_message
+sys.path.append(os.path.join(os.getcwd(), '..'))
+
+from gb_chat.gbc_common.variables import *
+from gb_chat.gbc_common.util import get_message, send_message
 
 
 def parse_arguments():
@@ -11,8 +15,7 @@ def parse_arguments():
     parser.add_argument('-a', dest='address', default=DEFAULT_SERVER_LISTEN_ADDRESS)
     args = parser.parse_args()
     if args.port < 1024 or args.port > 65355:
-        print('Invalid port number. Should be in range 1025-65535')
-        exit(1)
+        raise ValueError('Invalid port number. Should be in range 1025-65535')
     return args
 
 
@@ -26,7 +29,8 @@ def setup_server_socket() -> socket:
 
 
 def process_client_message(message):
-    if ACTION in message and message[ACTION] == PRESENCE and TIME in message and USER in message and message[USER][ACCOUNT_NAME] == 'Guest':
+    if ACTION in message and message[ACTION] == PRESENCE and TIME in message and USER in message and message[USER][
+        ACCOUNT_NAME] == 'Guest':
         return {RESPONSE: 200}
     return {
         RESPONSE: 400,
