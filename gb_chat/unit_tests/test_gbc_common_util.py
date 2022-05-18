@@ -6,8 +6,8 @@ import os
 sys.path.append(os.path.join(os.getcwd(), '..'))
 
 from unittest import mock
-from gb_chat.gbc_common.util import send_message, get_message
-from gb_chat.gbc_common.variables import DEFAULT_SERVER_PORT, DEFAULT_SERVER_ADDRESS, MAX_CONNECTIONS
+from gbc_common.util import send_message, get_message
+from gbc_common.variables import DEFAULT_SERVER_PORT, DEFAULT_SERVER_ADDRESS, MAX_CONNECTIONS
 
 
 OK_DICT = {'RESPONSE': 200}
