@@ -3,12 +3,17 @@ import time
 import argparse
 import sys
 import os
+import logging
+import logs.client_log_config
 
 sys.path.append(os.path.join(os.getcwd(), '..'))
 
 
-from gb_chat.gbc_common.variables import *
-from gb_chat.gbc_common.util import get_message, send_message
+from gbc_common.variables import *
+from gbc_common.util import get_message, send_message
+
+
+logger = logging.getLogger('client_logger')
 
 
 def parse_arguments():
@@ -17,11 +22,13 @@ def parse_arguments():
     parser.add_argument('port', nargs='?', default=DEFAULT_SERVER_PORT, type=int)
     args = parser.parse_args()
     if args.port < 1024 or args.port > 65355:
+        logger.critical(f'client called with incorrect port number: {args.port}')
         raise ValueError('Invalid port number. Should be in range 1025-65535')
     return args
 
 
 def create_presence_message(account_name='Guest'):
+    logger.info(f'presence message with account {account_name} created')
     return {
         ACTION: PRESENCE,
         TIME: time.time(),
@@ -45,7 +52,7 @@ def main():
     sock.connect((args.address, args.port))
     send_message(sock, create_presence_message())
     reply = process_answer(get_message(sock))
-    print(reply)
+    logger.info(f'client received {reply} from {args.address}:{args.port}')
     sock.close()
 
 

@@ -6,8 +6,8 @@ sys.path.append(os.path.join(os.getcwd(), '..'))
 
 from unittest.mock import patch
 
-from gb_chat.server import parse_arguments, process_client_message
-from gb_chat.gbc_common.variables import *
+from server import parse_arguments, process_client_message
+from gbc_common.variables import *
 
 MOCKED_ADDRESS = '192.168.0.1'
 ERROR_RESPONSE = {RESPONSE: 400, ERROR: 'Bad request'}

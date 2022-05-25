@@ -6,8 +6,8 @@ sys.path.append(os.path.join(os.getcwd(), '..'))
 
 from unittest.mock import patch
 
-from gb_chat.client import parse_arguments, create_presence_message, process_answer
-from gb_chat.gbc_common.variables import *
+from client import parse_arguments, create_presence_message, process_answer
+from gbc_common.variables import *
 
 MOCKED_ADDRESS = '192.168.0.1'
 MOCKED_PORT = '5555'
