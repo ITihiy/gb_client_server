@@ -13,6 +13,7 @@ def get_message(client_socket):
     json_result = json.loads(str_response)
     return json_result
 
+
 @log
 def send_message(sock, message):
     if not isinstance(message, dict):
