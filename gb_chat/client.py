@@ -128,7 +128,7 @@ def main():
         except ValueError as err:
             logger.critical(f'Failed connecting to server: {err}')
             sys.exit(1)
-        logger.info(f'{args.name} successfully logged in to server {args.address}:{args.port}')
+        print(f'{args.name} successfully logged in to server {args.address}:{args.port}')
 
         receiver = Thread(target=receiver_main_loop, args=(sock, args.name), daemon=True)
         sender = Thread(target=sender_main_loop, args=(sock, args.name), daemon=True)
