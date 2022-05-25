@@ -1,18 +1,16 @@
 import argparse
-import select
+import logging
+import os
 import socket
 import sys
-import os
-import logging
-import time
-import logs.server_log_config
+
+import select
 
 from logs.log_decorator import log
-
-sys.path.append(os.path.join(os.getcwd(), '..'))
-
 from gbc_common.variables import *
 from gbc_common.util import get_message, send_message
+
+sys.path.append(os.path.join(os.getcwd(), '..'))
 
 logger = logging.getLogger('server_logger')
 
@@ -40,48 +38,60 @@ def setup_server_socket() -> socket:
 
 
 @log
-def process_client_message(message, messages_list, client):
+def process_client_message(message, messages_list, client, clients_list, clients_names):
     logger.debug(f'Processing message from client: {message}')
-    if ACTION in message and message[ACTION] == PRESENCE and TIME in message and USER in message and \
-            message[USER][ACCOUNT_NAME] == 'Guest':
-        send_message(client, {RESPONSE: 200})
+    if ACTION in message and message[ACTION] == PRESENCE and TIME in message and USER in message:
+        if message[USER][ACCOUNT_NAME] not in clients_names:
+            clients_names[message[USER][ACCOUNT_NAME]] = client
+            send_message(client, OK_RESPONSE)
+        else:
+            response = ERROR_RESPONSE
+            response[ERROR] = f'Name {message[USER][ACCOUNT_NAME]} is already taken'
+            send_message(client, response)
+            clients_list.remove(client)
+            client.close()
         return
-    elif ACTION in message and message[ACTION] == MESSAGE and TIME in message and MESSAGE_TEXT in message:
-        messages_list.append((message[ACCOUNT_NAME], message[MESSAGE_TEXT]))
+    elif ACTION in message and message[ACTION] == MESSAGE and TIME in message and MESSAGE_TEXT in message and \
+            SENDER in message and DESTINATION in message:
+        messages_list.append(message)
         return
-    send_message(client, {RESPONSE: 400, ERROR: 'Bad request'})
+    elif ACTION in message and message[ACTION] == EXIT and ACCOUNT_NAME in message:
+        clients_list.remove(message[ACCOUNT_NAME])
+        clients_names[message[ACCOUNT_NAME]].close()
+        del clients_names[message[ACCOUNT_NAME]]
+        return
+    else:
+        response = ERROR_RESPONSE
+        response[ERROR] = f'Incorrect message: {message}'
+        send_message(client, response)
+        return
 
 
-def process_recv_data_list(data_lst, messages_lst, clients_lst):
+@log
+def send_message_to_client(message, clients_names, clients_sockets):
+    if message[DESTINATION] in clients_names and clients_names[message[DESTINATION]] in clients_sockets:
+        send_message(clients_names[message[DESTINATION]], message)
+    else:
+        error_text = f'Cannot send message to {message[DESTINATION]}'
+        logger.error(error_text)
+        raise Exception(error_text)
+
+
+def process_recv_data_list(data_lst, messages_lst, clients_lst, clients_names):
     for current_client in data_lst:
         try:
-            process_client_message(get_message(current_client), messages_lst, current_client)
+            process_client_message(get_message(current_client), messages_lst, current_client, clients_lst,
+                                   clients_names)
         except:
             logger.info(f'Client {current_client.getpeername()} disconnected')
-            clients_lst.remove(current_client)
-
-
-def process_send_data_list(data_lst, messages_lst, clients_lst):
-    current_message = {
-        ACTION: MESSAGE,
-        SENDER: messages_lst[0][0],
-        TIME: time.time(),
-        MESSAGE_TEXT: messages_lst[0][1],
-    }
-    del messages_lst[0]
-    for current_client in data_lst:
-        try:
-            send_message(current_client, current_message)
-        except:
-            logger.info(f'Client {current_client.getpeername()} disconnected')
-            current_client.close()
-            clients_lst.remove(current_client)
 
 
 def main():
     with setup_server_socket() as sock:
         clients_list = []
         messages_list = []
+
+        clients_names = {}
 
         while True:
             try:
@@ -93,18 +103,23 @@ def main():
                 clients_list.append(client_socket)
             recv_data_list = []
             send_data_list = []
-            err_data_list = []
 
             try:
-                recv_data_list, send_data_list, err_data_list = select.select(clients_list, clients_list, [], 0)
+                recv_data_list, send_data_list, _ = select.select(clients_list, clients_list, [], 0)
             except OSError:
                 pass
 
             if len(recv_data_list) > 0:
-                process_recv_data_list(recv_data_list, messages_list, clients_list)
+                process_recv_data_list(recv_data_list, messages_list, clients_list, clients_names)
 
             if len(messages_list) > 0 and len(send_data_list) > 0:
-                process_send_data_list(send_data_list, messages_list, clients_list)
+                for current_message in messages_list:
+                    try:
+                        send_message_to_client(current_message, clients_names, send_data_list)
+                    except Exception:
+                        clients_list.remove(clients_names[current_message[DESTINATION]])
+                        del clients_names[current_message[DESTINATION]]
+                messages_list.clear()
 
 
 if __name__ == '__main__':
