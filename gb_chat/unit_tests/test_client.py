@@ -6,8 +6,8 @@ sys.path.append(os.path.join(os.getcwd(), '..'))
 
 from unittest.mock import patch
 
-from gb_chat.client import parse_arguments, create_presence_message, process_answer
-from gb_chat.gbc_common.variables import *
+from client import parse_arguments, create_presence_message, process_response_answer
+from gbc_common.variables import *
 
 MOCKED_ADDRESS = '192.168.0.1'
 MOCKED_PORT = '5555'
@@ -50,14 +50,14 @@ class TestClient(unittest.TestCase):
         self.assertEqual(MOCKED_NAME, message[USER][ACCOUNT_NAME])
 
     def test_process_answer_incorrect_message(self):
-        self.assertRaises(ValueError, process_answer, 'Hello there')
+        self.assertRaises(ValueError, process_response_answer, 'Hello there')
 
     def test_process_answer_correct_message(self):
-        reply = process_answer({'response': 200})
+        reply = process_response_answer({'response': 200})
         self.assertEqual('200: OK', reply)
 
     def test_process_answer_message_with_error(self):
-        reply = process_answer({'response': 300, 'error': 'something went wrong'})
+        reply = process_response_answer({'response': 300, 'error': 'something went wrong'})
         self.assertIn('400:', reply)
 
 

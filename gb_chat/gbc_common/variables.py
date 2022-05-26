@@ -11,7 +11,19 @@ ACTION = 'action'
 TIME = 'time'
 USER = 'user'
 ACCOUNT_NAME = 'account_name'
+SENDER = 'sender'
+DESTINATION = 'to'
 
 PRESENCE = 'presence'
 RESPONSE = 'response'
 ERROR = 'error'
+EXIT = 'exit'
+
+MESSAGE = 'message'
+MESSAGE_TEXT = 'mess_text'
+
+OK_RESPONSE = {RESPONSE: 200}
+ERROR_RESPONSE = {
+    RESPONSE: 400,
+    ERROR: None
+}

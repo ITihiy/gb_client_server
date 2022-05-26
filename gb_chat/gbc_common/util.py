@@ -1,8 +1,10 @@
 import json
 
 from .variables import BUFFER_SIZE, ENCODING
+from logs.log_decorator import log
 
 
+@log
 def get_message(client_socket):
     raw_response = client_socket.recv(BUFFER_SIZE)
     if not isinstance(raw_response, bytes):
@@ -12,6 +14,7 @@ def get_message(client_socket):
     return json_result
 
 
+@log
 def send_message(sock, message):
     if not isinstance(message, dict):
         raise TypeError
