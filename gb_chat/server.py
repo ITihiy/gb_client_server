@@ -6,6 +6,7 @@ import sys
 
 import select
 
+
 from gbc_common.util import get_message, send_message
 from gbc_common.variables import *
 
@@ -25,16 +26,16 @@ def parse_arguments():
     return args
 
 
+
 class GBChatServer:
     def __init__(self, listen_address, listen_port):
         self.address = listen_address
         self.port = listen_port
-
         self.clients_list = []
         self.messages_list = []
         self.clients_names = {}
-
         self.sock = None
+
 
     def init_server_socket(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -97,6 +98,7 @@ class GBChatServer:
             else:
                 logger.info(f'Connected with: {address}')
                 self.clients_list.append(client_socket)
+
             recv_data_list = []
             send_data_list = []
 
