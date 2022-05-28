@@ -6,8 +6,10 @@ import sys
 import time
 from threading import Thread
 
+from descrs import PortDescriptor
 from gbc_common.util import get_message, send_message
 from gbc_common.variables import *
+from metaclasses import ClientVerifier
 
 sys.path.append(os.path.join(os.getcwd(), '..'))
 
@@ -20,13 +22,12 @@ def parse_arguments():
     parser.add_argument('port', nargs='?', default=DEFAULT_SERVER_PORT, type=int)
     parser.add_argument('--name', '-n', nargs='?', type=str)
     args = parser.parse_args()
-    if args.port < 1024 or args.port > 65355:
-        logger.critical(f'client called with incorrect port number: {args.port}')
-        raise ValueError('Invalid port number. Should be in range 1025-65535')
     return args
 
 
-class GBChatClient:
+class GBChatClient(metaclass=ClientVerifier):
+    port = PortDescriptor()
+
     def __init__(self, server_address, server_port, user_name):
         self.server_address = server_address
         self.server_port = server_port

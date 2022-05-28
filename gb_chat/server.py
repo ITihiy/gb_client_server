@@ -6,9 +6,10 @@ import sys
 
 import select
 
-
+from descrs import PortDescriptor
 from gbc_common.util import get_message, send_message
 from gbc_common.variables import *
+from metaclasses import ServerVerifier
 
 sys.path.append(os.path.join(os.getcwd(), '..'))
 
@@ -20,14 +21,12 @@ def parse_arguments():
     parser.add_argument('-p', dest='port', default=DEFAULT_SERVER_PORT, type=int)
     parser.add_argument('-a', dest='address', default=DEFAULT_SERVER_LISTEN_ADDRESS)
     args = parser.parse_args()
-    if args.port < 1024 or args.port > 65355:
-        logger.critical(f'server called with incorrect port number: {args.port}')
-        raise ValueError('Invalid port number. Should be in range 1025-65535')
     return args
 
 
+class GBChatServer(metaclass=ServerVerifier):
+    port = PortDescriptor()
 
-class GBChatServer:
     def __init__(self, listen_address, listen_port):
         self.address = listen_address
         self.port = listen_port
@@ -35,7 +34,6 @@ class GBChatServer:
         self.messages_list = []
         self.clients_names = {}
         self.sock = None
-
 
     def init_server_socket(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
