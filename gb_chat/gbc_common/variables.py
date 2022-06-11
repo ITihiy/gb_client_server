@@ -18,11 +18,17 @@ PRESENCE = 'presence'
 RESPONSE = 'response'
 ERROR = 'error'
 EXIT = 'exit'
+GET_CONTACTS = 'get_contacts'
+LIST_INFO = 'data_list'
+REMOVE_CONTACT = 'remove'
+ADD_CONTACT = 'add'
+USERS_REQUEST = 'get_users'
 
 MESSAGE = 'message'
 MESSAGE_TEXT = 'mess_text'
 
 OK_RESPONSE = {RESPONSE: 200}
+ACCEPTED_RESPONSE = {RESPONSE: 202, LIST_INFO: None}
 ERROR_RESPONSE = {
     RESPONSE: 400,
     ERROR: None
