@@ -7,7 +7,7 @@ log_file = logging.FileHandler(log_file_path, encoding='utf-8')
 log_file.setFormatter(client_formatter)
 logger = logging.getLogger('client_logger')
 logger.addHandler(log_file)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 if __name__ == '__main__':
     logger.info('INFO message')
