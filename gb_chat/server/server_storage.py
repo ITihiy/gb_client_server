@@ -1,7 +1,7 @@
 import datetime
 from pprint import pprint
 
-from sqlalchemy import create_engine, Table, Column, Integer, String, DateTime, ForeignKey, MetaData
+from sqlalchemy import create_engine, Table, Column, Integer, String, DateTime, ForeignKey, MetaData, Text
 from sqlalchemy.orm import mapper, sessionmaker
 
 RECYCLE_PERIOD = 7200
@@ -13,9 +13,11 @@ class ServerDBStorage:
         user_name = None
         last_login_time = None
 
-        def __init__(self, user_name: str):
+        def __init__(self, user_name: str, password_hash):
             self.user_name = user_name
+            self.password_hash = password_hash
             self.last_login_time = datetime.datetime.now()
+            self.public_key = None
 
         def __repr__(self):
             return f'User name: {self.user_name}\nLast login: {self.last_login_time}'
@@ -69,7 +71,9 @@ class ServerDBStorage:
             self.metadata,
             Column('id', Integer, primary_key=True),
             Column('user_name', String(50), unique=True),
+            Column('password_hash', String),
             Column('last_login_time', DateTime),
+            Column('public_key', Text)
         )
 
         current_users_table = Table(
@@ -121,16 +125,15 @@ class ServerDBStorage:
         self.session.query(self.CurrentActiveUsers).delete()
         self.session.commit()
 
-    def login_user(self, user_name, user_address, user_port):
+    def login_user(self, user_name, user_address, user_port, user_key):
         query_result = self.session.query(self.AllUsers).filter_by(user_name=user_name)
         if query_result.count():
             current_user = query_result.first()
             current_user.last_login = datetime.datetime.now()
+            if current_user.public_key != user_key:
+                current_user.public_key = user_key
         else:
-            current_user = self.AllUsers(user_name)
-            self.session.add(current_user)
-            self.session.commit()
-            self.session.add(self.UserMessageHistory(current_user.id))
+            raise ValueError(f'User {user_name} is not registered')
         self.session.add(self.CurrentActiveUsers(current_user.id, user_address, user_port, datetime.datetime.now()))
         self.session.add(self.LoginHistory(current_user.id, datetime.datetime.now(), user_address, user_port))
         self.session.commit()
@@ -204,14 +207,40 @@ class ServerDBStorage:
             contact_user=current_user.id).join(self.AllUsers, self.UserContacts.contact_contact == self.AllUsers.id)
         return [entry[1] for entry in query.all()]
 
+    def register_user(self, user_name, password_hash):
+        new_user = self.AllUsers(user_name, password_hash)
+        self.session.add(new_user)
+        self.session.commit()
+        self.session.add(self.UserMessageHistory(new_user.id))
+        self.session.commit()
+
+    def unregister_user(self, user_name: str):
+        current_user = self.session.query(self.AllUsers).filter_by(user_name=user_name).first()
+        self.session.query(self.CurrentActiveUsers).filter_by(current_user_id=current_user.id).delete()
+        self.session.query(self.LoginHistory).filter_by(history_user=current_user.id).delete()
+        self.session.query(self.UserContacts).filter_by(contact_user=current_user.id).delete()
+        self.session.query(self.UserContacts).filter_by(contact_contact=current_user.id).delete()
+        self.session.query(self.UserMessageHistory).filter_by(message_history_user=current_user.id).delete()
+        self.session.query(self.AllUsers).filter_by(user_name=current_user).delete()
+        self.session.commit()
+
+    def get_hash(self, name):
+        return self.session.query(self.AllUsers).filter_by(user_name=name).first().password_hash
+
+    def get_public_key(self, name):
+        return self.session.query(self.AllUsers).filter_by(user_name=name).first().public_key
+
+    def check_user_exists(self, name):
+        return bool(self.session.query(self.AllUsers).filter_by(user_name=name).count())
+
 
 if __name__ == '__main__':
     db = ServerDBStorage('server_db.sqlite')
-    db.login_user('1111', '192.168.1.113', 8080)
-    db.login_user('McG2', '192.168.1.113', 8081)
-    db.login_user('test1', '192.168.1.113', 8080)
-    db.login_user('test2', '192.168.1.113', 8081)
-    db.login_user('test3', '192.168.1.113', 8080)
+    db.login_user('1111', '192.168.1.113', 8080, '123')
+    db.login_user('McG2', '192.168.1.113', 8081, '123')
+    db.login_user('test1', '192.168.1.113', 8080, '123')
+    db.login_user('test2', '192.168.1.113', 8081, '123')
+    db.login_user('test3', '192.168.1.113', 8080, '123')
     pprint(db.all_users_list())
     pprint(db.current_users_list())
     db.logout_user('McG2')

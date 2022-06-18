@@ -6,7 +6,7 @@ from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtWidgets import QMainWindow, QAction, qApp, QLabel, QTableView, QApplication, QDialog, QPushButton, \
     QLineEdit, QFileDialog
 
-from server_storage import ServerDBStorage
+from server.server_storage import ServerDBStorage
 
 
 db_lock = threading.Lock()
