@@ -8,8 +8,8 @@ from PyQt5.QtWidgets import QApplication
 from client.client_storage import ClientDBStorage
 from client.client_transport import GBChatClientTransport
 from client.main_client_window import ClientMainWindow
-from client.request_user_name_dialog import UserNameDialog
-from errors import ServerError
+from client.start_dialog import UserNameDialog
+from gbc_common.errors import ServerError
 from gbc_common.variables import *
 
 sys.path.append(os.path.join(os.getcwd(), '..'))
@@ -22,6 +22,7 @@ def parse_arguments():
     parser.add_argument('address', nargs='?', default=DEFAULT_SERVER_ADDRESS)
     parser.add_argument('port', nargs='?', default=DEFAULT_SERVER_PORT, type=int)
     parser.add_argument('--name', '-n', default=None, nargs='?', type=str)
+    parser.add_argument('--password', '-p', default=None, nargs='?', type=str)
     arguments = parser.parse_args()
     if arguments.port < 1024 or arguments.port > 65535:
         raise ValueError(f'Incorrect port number {arguments.port}. Should be in range (1024-65535)')

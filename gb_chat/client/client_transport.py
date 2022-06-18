@@ -8,7 +8,7 @@ import time
 from PyQt5.QtCore import QObject, pyqtSignal
 
 from client.client_storage import ClientDBStorage
-from errors import ServerError
+from gbc_common.errors import ServerError
 from gbc_common.util import send_message, get_message
 from gbc_common.variables import *
 

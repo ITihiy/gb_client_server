@@ -10,7 +10,7 @@ from client.client_storage import ClientDBStorage
 from client.client_transport import GBChatClientTransport, LOST_CONNECTION_ERROR, TIMEOUT_ERROR
 from client.delete_contact import ClientDeleteContactDialog
 from client.main_client_window_raw import Ui_MainClientWindow
-from errors import ServerError
+from gbc_common.errors import ServerError
 from gbc_common.variables import *
 
 MAX_MESSAGES = 20
